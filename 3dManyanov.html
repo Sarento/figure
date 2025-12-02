@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <title>three.js webgl - геометрические фигуры (исправлено)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    html,body { width:100%; height:100%; margin:0; padding:0; overflow:hidden; }
+    #info {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 10;
+      background: rgba(255,255,255,0.85);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div id="info">Трехмерные фигуры</div>
+
+  <script type="module">
+    // импортируем модули прямо как ES-модули
+    import * as THREE from 'https://threejs.org/build/three.module.js';
+    import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
+    import { TeapotGeometry } from 'https://threejs.org/examples/jsm/geometries/TeapotGeometry.js';
+
+    let camera, scene, renderer, controls;
+    let ambientLight, dirLight;
+    init();
+    animate();
+
+    function init() {
+      // контейнер канваса
+      const container = document.createElement('div');
+      document.body.appendChild(container);
+
+      // камера
+      camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 5000);
+      camera.position.set(300, 700, 1200);
+
+      // сцена
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xD3D3D3);
+
+      // свет
+      ambientLight = new THREE.AmbientLight(0x333333);
+      dirLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
+      dirLight.position.set(1, 1, 1);
+      scene.add(ambientLight, dirLight);
+
+      // рендерер
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setPixelRatio(window.devicePixelRatio);
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      container.appendChild(renderer.domElement);
+
+      // контролы
+      controls = new OrbitControls(camera, renderer.domElement);
+      controls.rotateSpeed = 0.5;
+      controls.enableZoom = true;
+      controls.zoomSpeed = 0.5;
+      controls.minDistance = 500;
+      controls.maxDistance = 2500;
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // вспомогательная функция: создание и добавление цилиндра/конуса
+      function addCylinder(options) {
+        // options: { radiusTop, radiusBottom, height, radialSegments, color, pos:[x,y,z], rot:[x,y,z] }
+        const geo = new THREE.CylinderGeometry(
+          options.radiusTop,
+          options.radiusBottom,
+          options.height,
+          options.radialSegments ?? 8
+        );
+        const mat = new THREE.MeshPhongMaterial({ color: options.color ?? 0xffffff });
+        const mesh = new THREE.Mesh(geo, mat);
+        if (options.pos) mesh.position.set(options.pos[0], options.pos[1], options.pos[2]);
+        if (options.rot) mesh.rotation.set(options.rot[0], options.rot[1], options.rot[2]);
+        scene.add(mesh);
+        return mesh;
+      }
+
+      // Объекты (взял ваши позиции/цвета/размеры, только яснее)
+      // Зеленая пирамида (на базе цилиндра с 4 сегментами)
+      addCylinder({
+        radiusTop: 0, radiusBottom: 128, height: 240, radialSegments: 4,
+        color: 0x92ca12, pos: [10, 120, 60], rot: [0, Math.PI / 4, 0]
+      });
+
+      // Жёлтый треугольник снизу
+      addCylinder({
+        radiusTop: 128, radiusBottom: 128, height: 100, radialSegments: 3,
+        color: 0xecfa15, pos: [10, 50, 360], rot: [0, -Math.PI / 2, 0]
+      });
+
+      // Розовый цилиндр сверху-справа
+      addCylinder({
+        radiusTop: 100, radiusBottom: 100, height: 180, radialSegments: 6,
+        color: 0xfa15d4, pos: [360, 90, -360], rot: [0, Math.PI / 1.5, 0]
+      });
+
+      // Фиолетовый цилиндр справа (усечённый конус)
+      addCylinder({
+        radiusTop: 80, radiusBottom: 110, height: 180, radialSegments: 4,
+        color: 0x7e15fa, pos: [360, 90, 60], rot: [0, Math.PI / 2, 0]
+      });
+
+      // Розовый цилиндр слева
+      addCylinder({
+        radiusTop: 90, radiusBottom: 90, height: 180, radialSegments: 6,
+        color: 0xfa15d4, pos: [-360, 100, 60], rot: [Math.PI/2, Math.PI, Math.PI/4]
+      });
+
+      // Зеленый цилиндр снизу-слева
+      addCylinder({
+        radiusTop: 90, radiusBottom: 90, height: 180, radialSegments: 16,
+        color: 0x92ca12, pos: [-360, 100, 360], rot: [Math.PI/2, Math.PI, Math.PI/4]
+      });
+
+      // Бирюзовый цилиндр снизу-справа
+      addCylinder({
+        radiusTop: 80, radiusBottom: 90, height: 180, radialSegments: 8,
+        color: 0x6fa8dc, pos: [360, 100, 360], rot: [Math.PI/2, Math.PI, Math.PI/4]
+      });
+
+      // Жёлтый треугольник сверху
+      addCylinder({
+        radiusTop: 128, radiusBottom: 128, height: 120, radialSegments: 3,
+        color: 0xecfa15, pos: [10, 60, -360], rot: [Math.PI/2, Math.PI, -Math.PI/4]
+      });
+
+      // Фиолетовый цилиндр сверху-слева
+      addCylinder({
+        radiusTop: 80, radiusBottom: 80, height: 180, radialSegments: 4,
+        color: 0x7e15fa, pos: [-335, 90, -360], rot: [0, Math.PI/2, 0]
+      });
+
+      // Фиолетовый треугольник сверху-слева (тоньше)
+      addCylinder({
+        radiusTop: 120, radiusBottom: 120, height: 113.5, radialSegments: 3,
+        color: 0x7e15fa, pos: [-375, 60, -320], rot: [Math.PI/2, Math.PI, Math.PI/4]
+      });
+
+      // Чайник (Teapot)
+      const teapotGeo = new TeapotGeometry(100);
+      const teapotMat = new THREE.MeshPhongMaterial({ color: 0x0229a1 });
+      const teapot = new THREE.Mesh(teapotGeo, teapotMat);
+      teapot.position.set(210, 400, 350);
+      scene.add(teapot);
+
+      // helper grid
+      const helper = new THREE.GridHelper(1000, 10);
+      scene.add(helper);
+
+      // события
+      window.addEventListener('resize', onWindowResize, false);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update(); // обязательно для enableDamping
+      render();
+    }
+
+    function render() {
+      renderer.render(scene, camera);
+    }
+  </script>
+</body>
+</html>
